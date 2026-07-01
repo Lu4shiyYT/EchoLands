@@ -1,1 +1,237 @@
 
+---
+
+## File 2: index.html
+
+Copy this code into `index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Prevent mobile scaling; keep pixel-perfect layout -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Echo Lands</title>
+
+  <!-- Main stylesheet: pixel-art rendering, HUD, menus -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       MAIN MENU OVERLAY
+       Shown at startup; hidden when a game starts.
+  ====================================================== -->
+  <div id="main-menu" class="menu-overlay">
+
+    <!-- Game logo / title -->
+    <div class="menu-title">
+      <span class="title-echo">ECHO</span>
+      <span class="title-lands">LANDS</span>
+    </div>
+
+    <!-- Main menu buttons -->
+    <div class="menu-buttons">
+      <button id="btn-new-game"  class="menu-btn">New Game</button>
+      <button id="btn-load-game" class="menu-btn">Load Game</button>
+      <button id="btn-settings"  class="menu-btn">Settings</button>
+    </div>
+
+    <!-- Version tag -->
+    <div class="menu-version">v0.1.0 — Alpha</div>
+  </div>
+
+  <!-- =====================================================
+       NEW GAME PANEL
+       Collect world name + seed before creating a world.
+  ====================================================== -->
+  <div id="new-game-panel" class="menu-overlay hidden">
+    <div class="panel-box">
+      <h2 class="panel-title">Create New World</h2>
+
+      <label class="panel-label" for="input-world-name">World Name</label>
+      <input id="input-world-name" class="panel-input" type="text"
+             placeholder="My World" maxlength="32" />
+
+      <label class="panel-label" for="input-seed">Seed (text or number)</label>
+      <input id="input-seed" class="panel-input" type="text"
+             placeholder="Leave blank for random" maxlength="64" />
+
+      <div class="panel-row">
+        <button id="btn-create-world" class="menu-btn">Create</button>
+        <button id="btn-back-new"     class="menu-btn btn-secondary">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       LOAD GAME PANEL
+       Lists saved worlds from LocalStorage.
+  ====================================================== -->
+  <div id="load-game-panel" class="menu-overlay hidden">
+    <div class="panel-box">
+      <h2 class="panel-title">Load World</h2>
+
+      <!-- Dynamically populated by save.js -->
+      <div id="save-slot-list" class="save-slot-list"></div>
+
+      <button id="btn-back-load" class="menu-btn btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       SETTINGS PANEL
+       Key bindings + other options.
+  ====================================================== -->
+  <div id="settings-panel" class="menu-overlay hidden">
+    <div class="panel-box panel-box--wide">
+      <h2 class="panel-title">Settings</h2>
+
+      <!-- Key bindings table; populated by main.js / settings logic -->
+      <div id="keybind-list" class="keybind-list"></div>
+
+      <button id="btn-back-settings" class="menu-btn btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       GAME CANVAS
+       The entire game is rendered here.
+       Hidden until a world is loaded.
+  ====================================================== -->
+  <canvas id="game-canvas" class="hidden"></canvas>
+
+  <!-- =====================================================
+       HUD LAYER  (sits on top of canvas, HTML-based)
+       Health / Armor / Stamina / Food / Water bars,
+       hotbar, minimap button.
+  ====================================================== -->
+  <div id="hud" class="hidden">
+
+    <!-- Top-left: vital stats -->
+    <div id="hud-stats">
+      <!-- Hearts row -->
+      <div id="hud-health" class="hud-row" title="Health"></div>
+      <!-- Armor row -->
+      <div id="hud-armor"  class="hud-row" title="Armor"></div>
+      <!-- Stamina bar -->
+      <div class="hud-row hud-bar-row">
+        <span class="hud-bar-label">STM</span>
+        <div class="hud-bar-bg">
+          <div id="hud-stamina-bar" class="hud-bar hud-bar--stamina"></div>
+        </div>
+      </div>
+      <!-- Food bar -->
+      <div class="hud-row hud-bar-row">
+        <span class="hud-bar-label">FOOD</span>
+        <div class="hud-bar-bg">
+          <div id="hud-food-bar" class="hud-bar hud-bar--food"></div>
+        </div>
+      </div>
+      <!-- Water bar -->
+      <div class="hud-row hud-bar-row">
+        <span class="hud-bar-label">H₂O</span>
+        <div class="hud-bar-bg">
+          <div id="hud-water-bar" class="hud-bar hud-bar--water"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom-center: hotbar -->
+    <div id="hud-hotbar">
+      <!-- 7 slots; populated by inventory.js -->
+    </div>
+
+    <!-- Top-right: minimap toggle -->
+    <button id="btn-minimap" class="minimap-btn" title="Toggle Map">MAP</button>
+
+    <!-- Minimap canvas (small, always visible) -->
+    <canvas id="minimap-canvas" width="120" height="80"></canvas>
+
+  </div>
+
+  <!-- =====================================================
+       INVENTORY OVERLAY
+       Toggled by E key; rendered as HTML over canvas.
+  ====================================================== -->
+  <div id="inventory-overlay" class="menu-overlay hidden">
+    <div class="inventory-box">
+      <h3 class="panel-title">Inventory</h3>
+
+      <!-- Backpack grid (28 slots) -->
+      <div id="inventory-grid" class="inventory-grid"></div>
+
+      <!-- Close button -->
+      <button id="btn-close-inventory" class="menu-btn btn-secondary">Close (E)</button>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       DEATH SCREEN
+       Shown when player HP reaches 0.
+  ====================================================== -->
+  <div id="death-screen" class="menu-overlay hidden">
+    <div class="panel-box">
+      <h2 class="panel-title death-title">You Died</h2>
+      <p class="death-msg">You have returned to your last checkpoint.</p>
+      <button id="btn-respawn" class="menu-btn">Respawn</button>
+      <button id="btn-quit-death" class="menu-btn btn-secondary">Main Menu</button>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       ACHIEVEMENT TOAST
+       Briefly shown when an achievement unlocks.
+  ====================================================== -->
+  <div id="achievement-toast" class="achievement-toast hidden">
+    <span id="achievement-icon">🏆</span>
+    <div>
+      <div class="achievement-title">Achievement Unlocked!</div>
+      <div id="achievement-name" class="achievement-name"></div>
+    </div>
+  </div>
+
+  <!-- ===================================================
+       JAVASCRIPT — load order matters.
+       constants.js must be first (all other files depend on it).
+  ==================================================== -->
+
+  <!-- 1. All game constants (block IDs, stats, recipes, biomes) -->
+  <script src="js/constants.js"></script>
+
+  <!-- 2. Save / Load system (needed early for world init) -->
+  <script src="js/save.js"></script>
+
+  <!-- 3. Biome definitions -->
+  <script src="js/biomes.js"></script>
+
+  <!-- 4. World / chunk generation -->
+  <script src="js/world.js"></script>
+
+  <!-- 5. Block logic (gravity, break, place) -->
+  <script src="js/blocks.js"></script>
+
+  <!-- 6. Inventory management -->
+  <script src="js/inventory.js"></script>
+
+  <!-- 7. Combat system -->
+  <script src="js/combat.js"></script>
+
+  <!-- 8. Crafting system -->
+  <script src="js/crafting.js"></script>
+
+  <!-- 9. Entity AI (mobs, settlers, animals) -->
+  <script src="js/entities.js"></script>
+
+  <!-- 10. Player class -->
+  <script src="js/player.js"></script>
+
+  <!-- 11. HUD rendering -->
+  <script src="js/hud.js"></script>
+
+  <!-- 12. Main game loop — must be last -->
+  <script src="js/main.js"></script>
+
+</body>
+</html>
