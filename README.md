@@ -1,6 +1,6 @@
 # Echo Lands
 
-A 2D side-scrolling pixel-art sandbox survival game inspired by Terraria.
+A 2D side-scrolling pixel-art sandbox survival game.
 Built with pure HTML5, CSS3, and vanilla JavaScript — no libraries, no frameworks.
 
 ## How to Run
