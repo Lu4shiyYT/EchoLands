@@ -1,1 +1,962 @@
+/* =============================================================
+   ECHO LANDS — Master Stylesheet
+   Pixel-art aesthetic enforced via image-rendering rules.
+   All measurements in px for pixel-perfect alignment.
+   ============================================================= */
 
+/* --- Reset & base ------------------------------------------ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;                   /* Game fills the full viewport */
+  background: #0a0a0f;               /* Very dark background behind canvas */
+  font-family: 'Courier New', Courier, monospace; /* Monospace = retro feel */
+  color: #e8e8d0;
+}
+
+/* --- Pixel-art rendering rules ------------------------------ */
+/* Applied to canvas and any image element in the game */
+canvas,
+img,
+.pixel-art {
+  image-rendering: pixelated;        /* Chrome / Edge */
+  image-rendering: crisp-edges;      /* Firefox */
+  image-rendering: -moz-crisp-edges; /* Older Firefox */
+}
+
+/* --- Utility ----------------------------------------------- */
+.hidden {
+  display: none !important;          /* Used by JS to show/hide panels */
+}
+
+/* =============================================================
+   GAME CANVAS
+   Fills the full viewport; sits behind HUD overlays.
+   ============================================================= */
+#game-canvas {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Canvas internal resolution is set by JS; CSS stretches it */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  cursor: crosshair;                 /* Game-style cursor */
+}
+
+/* =============================================================
+   MENU OVERLAY
+   Full-screen dark semi-transparent layer for menus / panels.
+   ============================================================= */
+.menu-overlay {
+  position: fixed;
+  inset: 0;                          /* top/right/bottom/left = 0 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 5, 10, 0.92);  /* Dark translucent bg */
+  z-index: 100;
+}
+
+/* --- Main menu title --------------------------------------- */
+.menu-title {
+  margin-bottom: 48px;
+  text-align: center;
+  line-height: 1;
+  text-shadow: 0 0 24px #5af;
+}
+
+.title-echo {
+  display: block;
+  font-size: 72px;
+  font-weight: 900;
+  letter-spacing: 16px;
+  color: #7ee8fa;
+  text-transform: uppercase;
+}
+
+.title-lands {
+  display: block;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 24px;
+  color: #b8e0a0;
+  text-transform: uppercase;
+}
+
+/* Version label bottom of main menu */
+.menu-version {
+  position: absolute;
+  bottom: 18px;
+  right: 24px;
+  font-size: 11px;
+  color: #556;
+  letter-spacing: 2px;
+}
+
+/* --- Menu button row --------------------------------------- */
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+/* Base menu button style */
+.menu-btn {
+  min-width: 220px;
+  padding: 12px 32px;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #e8e8d0;
+  background: #1a2a1a;
+  border: 2px solid #4a8a4a;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s, transform 0.05s;
+  /* Pixel-art style: no border-radius */
+  border-radius: 0;
+  outline: none;
+}
+
+.menu-btn:hover {
+  background: #2a4a2a;
+  border-color: #7ee87e;
+  color: #ffffff;
+}
+
+.menu-btn:active {
+  transform: translateY(2px);        /* Pixel press effect */
+  background: #3a6a3a;
+}
+
+/* Secondary (back/cancel) button variant */
+.menu-btn.btn-secondary {
+  background: #1a1a2a;
+  border-color: #444466;
+  color: #aaa;
+  font-size: 14px;
+  min-width: 140px;
+}
+
+.menu-btn.btn-secondary:hover {
+  background: #2a2a4a;
+  border-color: #8888bb;
+  color: #e8e8d0;
+}
+
+/* --- Panel box (sub-menus: New Game, Load, Settings) -------- */
+.panel-box {
+  background: #0d1a0d;
+  border: 3px solid #3a6a3a;
+  padding: 36px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 360px;
+  max-width: 520px;
+  width: 90vw;
+}
+
+/* Wider variant for settings */
+.panel-box--wide {
+  max-width: 700px;
+}
+
+.panel-title {
+  font-size: 24px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #7ee8fa;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+/* Form labels inside panels */
+.panel-label {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #88aa88;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* Text inputs inside panels */
+.panel-input {
+  font-family: inherit;
+  font-size: 16px;
+  color: #e8e8d0;
+  background: #0a1a0a;
+  border: 2px solid #3a5a3a;
+  padding: 8px 12px;
+  outline: none;
+  border-radius: 0;
+  width: 100%;
+}
+
+.panel-input:focus {
+  border-color: #7ee87e;
+}
+
+/* Row of buttons inside a panel */
+.panel-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+/* =============================================================
+   SAVE SLOT LIST  (Load Game panel)
+   Each saved world is a clickable row.
+   ============================================================= */
+.save-slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;          /* Scroll if many saves */
+  margin-bottom: 12px;
+  padding-right: 4px;
+}
+
+/* Scrollbar styling — dark retro look */
+.save-slot-list::-webkit-scrollbar {
+  width: 6px;
+}
+.save-slot-list::-webkit-scrollbar-track {
+  background: #0a0a0f;
+}
+.save-slot-list::-webkit-scrollbar-thumb {
+  background: #3a6a3a;
+}
+
+/* Single save entry row */
+.save-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #0a1a0a;
+  border: 2px solid #2a4a2a;
+  cursor: pointer;
+  transition: border-color 0.1s, background 0.1s;
+  gap: 12px;
+}
+
+.save-slot:hover {
+  background: #142814;
+  border-color: #5a9a5a;
+}
+
+/* World name inside a save slot */
+.save-slot-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #b8e0a0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Metadata (seed, last played date) */
+.save-slot-meta {
+  font-size: 11px;
+  color: #556655;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Delete button inside each save slot */
+.save-slot-delete {
+  background: #2a0a0a;
+  border: 1px solid #6a2a2a;
+  color: #cc6666;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: background 0.1s;
+}
+
+.save-slot-delete:hover {
+  background: #4a1a1a;
+  border-color: #cc4444;
+  color: #ffaaaa;
+}
+
+/* Empty state message when no saves exist */
+.save-slot-empty {
+  text-align: center;
+  color: #445544;
+  font-size: 14px;
+  padding: 24px 0;
+  letter-spacing: 2px;
+}
+
+/* =============================================================
+   SETTINGS PANEL — Key bindings list
+   ============================================================= */
+.keybind-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  padding-right: 4px;
+}
+
+.keybind-list::-webkit-scrollbar {
+  width: 6px;
+}
+.keybind-list::-webkit-scrollbar-track { background: #0a0a0f; }
+.keybind-list::-webkit-scrollbar-thumb { background: #3a6a3a; }
+
+/* Single keybind row: [Action label] [Key button] */
+.keybind-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #0a1a0a;
+  border: 1px solid #1e3a1e;
+  gap: 16px;
+}
+
+/* Action name in the keybind row */
+.keybind-action {
+  font-size: 13px;
+  color: #88aa88;
+  letter-spacing: 1px;
+  flex: 1;
+}
+
+/* The clickable key badge — click to rebind */
+.keybind-key {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e8e8d0;
+  background: #1a2a1a;
+  border: 2px solid #4a8a4a;
+  padding: 4px 12px;
+  min-width: 80px;
+  text-align: center;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: border-color 0.1s, background 0.1s;
+}
+
+/* Highlighted state when waiting for a new key press */
+.keybind-key.listening {
+  background: #2a1a00;
+  border-color: #ffaa44;
+  color: #ffaa44;
+  animation: blink-border 0.5s step-end infinite;
+}
+
+@keyframes blink-border {
+  0%   { border-color: #ffaa44; }
+  50%  { border-color: #2a1a00; }
+  100% { border-color: #ffaa44; }
+}
+
+/* =============================================================
+   HUD  (Heads-Up Display)
+   Positioned over the canvas, pointer-events: none by default
+   so clicks pass through to the game canvas.
+   ============================================================= */
+#hud {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;              /* Clicks pass through to canvas */
+}
+
+/* --- Vital stats block (top-left) -------------------------- */
+#hud-stats {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Generic row inside hud-stats */
+.hud-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+}
+
+/* --- Heart / Armor icons rendered as tiny squares ---------- */
+/* Each heart/armor icon is a <span> injected by hud.js */
+.hud-heart {
+  width: 14px;
+  height: 14px;
+  background: #cc2222;
+  /* Pixel outline */
+  box-shadow: inset -2px -2px 0 #881111, inset 2px 2px 0 #ff6666;
+  display: inline-block;
+}
+
+.hud-heart.empty {
+  background: #331111;
+  box-shadow: inset -2px -2px 0 #220000, inset 2px 2px 0 #552222;
+}
+
+.hud-armor-icon {
+  width: 14px;
+  height: 14px;
+  background: #7799cc;
+  box-shadow: inset -2px -2px 0 #334488, inset 2px 2px 0 #aaccff;
+  display: inline-block;
+}
+
+.hud-armor-icon.empty {
+  background: #1a1a33;
+  box-shadow: inset -2px -2px 0 #111122, inset 2px 2px 0 #333355;
+}
+
+/* --- Stamina / Food / Water bars --------------------------- */
+.hud-bar-row {
+  height: 16px;
+  gap: 6px;
+}
+
+/* Small text label to the left of the bar */
+.hud-bar-label {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #667766;
+  width: 30px;
+  text-align: right;
+  line-height: 16px;
+}
+
+/* Bar background (empty track) */
+.hud-bar-bg {
+  width: 100px;
+  height: 10px;
+  background: #111a11;
+  border: 1px solid #2a3a2a;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Filled portion of bar */
+.hud-bar {
+  height: 100%;
+  transition: width 0.15s linear;   /* Smooth drain/fill animation */
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* Color variants per stat */
+.hud-bar--stamina { background: #44cc88; }
+.hud-bar--food    { background: #cc8844; }
+.hud-bar--water   { background: #4488cc; }
+
+/* =============================================================
+   HOTBAR  (bottom-center of screen)
+   ============================================================= */
+#hud-hotbar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  pointer-events: auto;             /* Hotbar IS clickable */
+}
+
+/* Single hotbar slot */
+.hotbar-slot {
+  width: 48px;
+  height: 48px;
+  background: #0d1a0d;
+  border: 2px solid #2a4a2a;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.08s;
+}
+
+/* Active / selected slot has a brighter border */
+.hotbar-slot.active {
+  border-color: #7ee87e;
+  background: #162a16;
+  box-shadow: 0 0 8px #3a8a3a;
+}
+
+.hotbar-slot:hover {
+  border-color: #5a8a5a;
+}
+
+/* Slot number label (1-7) */
+.hotbar-slot-num {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 9px;
+  color: #445544;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Item icon canvas inside slot */
+.hotbar-slot canvas,
+.inventory-slot canvas {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Stack count label (e.g. "x64") */
+.slot-count {
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 9px;
+  color: #e8e8d0;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* =============================================================
+   MINIMAP  (top-right corner)
+   ============================================================= */
+#minimap-canvas {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: 2px solid #2a4a2a;
+  background: #050f05;
+  /* Pointer events enabled so player can click to open full map */
+  pointer-events: auto;
+  cursor: pointer;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* MAP text button above minimap */
+.minimap-btn {
+  position: absolute;
+  top: 96px;                        /* Below minimap (80px tall + 2 border + gap) */
+  right: 12px;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #88aa88;
+  background: #0d1a0d;
+  border: 1px solid #2a4a2a;
+  padding: 3px 8px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.minimap-btn:hover {
+  border-color: #5a9a5a;
+  color: #b8e0b8;
+}
+
+/* =============================================================
+   INVENTORY OVERLAY
+   ============================================================= */
+.inventory-box {
+  background: #0d1a0d;
+  border: 3px solid #3a6a3a;
+  padding: 28px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
+  width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* 7-column grid for 28 backpack slots (4 rows × 7) */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 48px);
+  gap: 4px;
+}
+
+/* Single inventory slot — same base style as hotbar slot */
+.inventory-slot {
+  width: 48px;
+  height: 48px;
+  background: #0a1a0a;
+  border: 2px solid #1e3a1e;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.08s;
+}
+
+.inventory-slot:hover {
+  border-color: #5a8a5a;
+  background: #122012;
+}
+
+/* Drag-over highlight when moving items */
+.inventory-slot.drag-over {
+  border-color: #ffcc44;
+  background: #2a2a00;
+}
+
+/* =============================================================
+   DEATH SCREEN
+   ============================================================= */
+.death-title {
+  color: #cc2222 !important;         /* Override panel-title teal color */
+  text-shadow: 0 0 16px #ff0000;
+}
+
+.death-msg {
+  font-size: 13px;
+  color: #886666;
+  text-align: center;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+/* =============================================================
+   ACHIEVEMENT TOAST  (top-center, brief notification)
+   ============================================================= */
+.achievement-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #0d1a0d;
+  border: 2px solid #7ee87e;
+  padding: 12px 24px;
+  min-width: 280px;
+  box-shadow: 0 0 20px rgba(100, 220, 100, 0.3);
+  /* Fade in / out handled by JS adding/removing .hidden */
+  animation: toast-slide-in 0.3s ease-out;
+}
+
+@keyframes toast-slide-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Trophy emoji icon */
+.achievement-toast span:first-child {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.achievement-title {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #7ee87e;
+  text-transform: uppercase;
+}
+
+.achievement-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e8e8d0;
+  margin-top: 2px;
+}
+
+/* =============================================================
+   MOB HP BAR  (rendered in canvas, but this styles the
+   HTML tooltip version used in entity debug mode)
+   ============================================================= */
+.mob-hp-bar-wrap {
+  position: absolute;               /* Positioned by JS over the entity */
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.mob-hp-bar-bg {
+  width: 40px;
+  height: 5px;
+  background: #1a0000;
+  border: 1px solid #440000;
+  overflow: hidden;
+}
+
+.mob-hp-bar-fill {
+  height: 100%;
+  background: #cc2222;
+  transition: width 0.1s;
+}
+
+/* Friendliness icon shown above befriended aborigines */
+.mob-friendly-icon {
+  font-size: 12px;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px #ffff44);
+}
+
+/* =============================================================
+   CRAFTING STATION UI  (shown when right-clicking a station)
+   ============================================================= */
+#crafting-ui {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 5, 10, 0.88);
+  /* Shown/hidden by JS */
+}
+
+.crafting-box {
+  background: #0d1a0d;
+  border: 3px solid #3a6a3a;
+  padding: 28px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 420px;
+  max-width: 640px;
+  width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+/* Recipe list */
+.recipe-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.recipe-list::-webkit-scrollbar { width: 6px; }
+.recipe-list::-webkit-scrollbar-track { background: #0a0a0f; }
+.recipe-list::-webkit-scrollbar-thumb { background: #3a6a3a; }
+
+/* Single recipe row */
+.recipe-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  background: #0a1a0a;
+  border: 1px solid #1e3a1e;
+  cursor: pointer;
+  transition: background 0.08s, border-color 0.08s;
+}
+
+.recipe-row:hover {
+  background: #122012;
+  border-color: #4a7a4a;
+}
+
+/* Greyed out when player lacks ingredients */
+.recipe-row.unavailable {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.recipe-row.unavailable:hover {
+  background: #0a1a0a;
+  border-color: #1e3a1e;
+}
+
+/* Recipe output icon area */
+.recipe-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+/* Recipe name and cost text */
+.recipe-info {
+  flex: 1;
+}
+
+.recipe-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #b8e0a0;
+}
+
+.recipe-cost {
+  font-size: 10px;
+  color: #557755;
+  margin-top: 2px;
+  letter-spacing: 1px;
+}
+
+/* Craft button inside recipe row */
+.recipe-craft-btn {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #e8e8d0;
+  background: #1a2a1a;
+  border: 2px solid #4a8a4a;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.recipe-craft-btn:hover {
+  background: #2a4a2a;
+  border-color: #7ee87e;
+}
+
+/* =============================================================
+   TOOLTIP  (item name on hover in inventory/hotbar)
+   ============================================================= */
+#item-tooltip {
+  position: fixed;
+  z-index: 300;
+  pointer-events: none;
+  background: #0a1a0a;
+  border: 1px solid #3a6a3a;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #b8e0a0;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  /* Positioned by JS near cursor */
+}
+
+/* =============================================================
+   FLOATING DAMAGE NUMBERS  (shown in canvas via JS)
+   These CSS rules are for the HTML overlay version used
+   in certain display modes.
+   ============================================================= */
+.damage-number {
+  position: absolute;
+  pointer-events: none;
+  font-size: 16px;
+  font-weight: 900;
+  color: #ff4444;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+  animation: float-up 0.8s ease-out forwards;
+}
+
+.damage-number.heal {
+  color: #44ff88;
+}
+
+@keyframes float-up {
+  0%   { opacity: 1;   transform: translateY(0); }
+  100% { opacity: 0;   transform: translateY(-36px); }
+}
+
+/* =============================================================
+   BLOCK BREAK PROGRESS  (overlay drawn on canvas by JS,
+   but this styles the HTML debug indicator)
+   ============================================================= */
+.break-progress-bar {
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  height: 3px;
+  background: #ffcc44;
+  transition: width 0.05s linear;
+  pointer-events: none;
+}
+
+/* =============================================================
+   LOADING SCREEN  (shown during chunk generation)
+   ============================================================= */
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #050f05;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.loading-title {
+  font-size: 32px;
+  letter-spacing: 8px;
+  color: #7ee8fa;
+  text-transform: uppercase;
+}
+
+.loading-bar-bg {
+  width: 320px;
+  height: 16px;
+  background: #0a1a0a;
+  border: 2px solid #2a4a2a;
+  overflow: hidden;
+}
+
+.loading-bar-fill {
+  height: 100%;
+  background: #4a9a4a;
+  transition: width 0.1s;
+}
+
+.loading-label {
+  font-size: 11px;
+  color: #445544;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* =============================================================
+   RESPONSIVE ADJUSTMENTS
+   Game is designed for landscape desktop, but we make
+   the menu readable on smaller screens.
+   ============================================================= */
+@media (max-width: 600px) {
+  .title-echo  { font-size: 40px; letter-spacing: 8px; }
+  .title-lands { font-size: 24px; letter-spacing: 12px; }
+  .panel-box   { padding: 20px 18px; min-width: unset; }
+  .menu-btn    { min-width: 160px; font-size: 14px; padding: 10px 20px; }
+
+  /* Hotbar shrinks on mobile */
+  .hotbar-slot { width: 36px; height: 36px; }
+  #minimap-canvas { width: 80px; height: 54px; }
+}
+
+/* =============================================================
+   SCROLLBAR global styling (dark theme for all scrollable areas)
+   ============================================================= */
+::-webkit-scrollbar       { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #050f05; }
+::-webkit-scrollbar-thumb { background: #2a4a2a; }
+::-webkit-scrollbar-thumb:hover { background: #4a7a4a; }
